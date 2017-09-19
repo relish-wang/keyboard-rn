@@ -41,13 +41,13 @@ public abstract class OnKeyboardActionAdapter implements KeyboardView.OnKeyboard
     public void onKey(int primaryCode, int[] keyCodes) {
         onKey(primaryCode, keyCodes, mCallback);
         if (primaryCode == Keyboard.KEYCODE_DELETE) { // 回退(backspace)
-            if (mCallback != null) mCallback.invoke("-1");
-            if (mEasyCallback != null) mEasyCallback.onKeyEvent("-1");
+            if (mCallback != null) mCallback.invoke("backspace");
+            if (mEasyCallback != null) mEasyCallback.onKeyEvent("backspace");
         } else if (primaryCode == Keyboard.KEYCODE_CANCEL) { // 完成（complete）
             close();
             // mCallback.invoke("cancel");
-            if (mCallback != null) mCallback.invoke("0");
-            if (mEasyCallback != null) mEasyCallback.onKeyEvent("0");
+            if (mCallback != null) mCallback.invoke("complete");
+            if (mEasyCallback != null) mEasyCallback.onKeyEvent("complete");
         } else {
             String code = Character.toString((char) primaryCode);
             if (mCallback != null) {

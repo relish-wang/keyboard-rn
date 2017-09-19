@@ -91,11 +91,11 @@ export default class keyboard extends Component {
 
   onKeyboardResult = (e)=> {
     if(e.tag==='IDCard'){
-      if(e.result==='-1'){
+      if(e.result==='backspace'){
         this.setState({
             textIdCard: this.state.textIdCard.substring(0, this.state.textIdCard.length-1)
         });
-      }else if(e.result==='0'){
+      }else if(e.result==='complete'){
         this.refs.idCardInput.blur();
       }else{
         this.setState({
@@ -103,11 +103,11 @@ export default class keyboard extends Component {
         });
       }
     }else if(e.tag==='CarNumber'){
-        if(e.result==='-1'){
+        if(e.result==='backspace'){
           this.setState({
               textCarNumber: this.state.textCarNumber.substring(0, this.state.textCarNumber.length-1)
           });
-        }else if(e.result==='0'){
+        }else if(e.result==='complete'){
           this.refs.idCardInput.blur();
         }else{
           this.setState({
