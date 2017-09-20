@@ -13,8 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-
-import com.facebook.react.bridge.Callback;
+import android.widget.EditText;
 
 /**
  * @author Relish Wang
@@ -24,34 +23,28 @@ public class KeyboardDialog extends Dialog {
 
     private KeyboardView mKeyboardView;
     private Keyboard mKeyboard;
-    private Callback mCallback;
-    private EasyCallback easyCallback;
+    private EditText mEditText;
 
-    public static KeyboardDialog newInstance(Context context, @XmlRes int resId, Callback callback) {
-        return new KeyboardDialog(context, resId, callback);
+    public static KeyboardDialog newInstance(Context context, @XmlRes int resId, EditText editText) {
+        return new KeyboardDialog(context, resId, editText);
     }
 
-    public static KeyboardDialog newInstance(Context context, @NonNull Keyboard keyboard, Callback callback) {
-        return new KeyboardDialog(context, keyboard, callback);
+    public static KeyboardDialog newInstance(Context context, @NonNull Keyboard keyboard, EditText editText) {
+        return new KeyboardDialog(context, keyboard, editText);
     }
 
-    public KeyboardDialog(@NonNull Context context, @XmlRes int resId, EasyCallback callback) {
+    public KeyboardDialog(@NonNull Context context, @XmlRes int resId, EditText editText) {
         super(context, R.style.BottomDialog);
         mKeyboard = new Keyboard(context, resId);
-        easyCallback = callback;
+        mEditText = editText;
     }
 
-    public KeyboardDialog(@NonNull Context context, @XmlRes int resId, Callback callback) {
-        super(context, R.style.BottomDialog);
-        mKeyboard = new Keyboard(context, resId);
-        mCallback = callback;
-    }
-
-    public KeyboardDialog(@NonNull Context context, @NonNull Keyboard keyboard, Callback callback) {
+    public KeyboardDialog(@NonNull Context context, @NonNull Keyboard keyboard, EditText editText) {
         super(context, R.style.BottomDialog);
         mKeyboard = keyboard;
-        mCallback = callback;
+        mEditText = editText;
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +74,7 @@ public class KeyboardDialog extends Dialog {
         mKeyboardView = (KeyboardView) rootView.findViewById(R.id.keyboard);
         mKeyboardView.setPreviewEnabled(false);
         mKeyboardView.setKeyboard(mKeyboard);
-        mKeyboardView.setOnKeyboardActionListener(new OnKeyboardActionAdapter(easyCallback) {
+        mKeyboardView.setOnKeyboardActionListener(new OnKeyboardActionAdapter(mEditText) {
 
             @Override
             public void close() {

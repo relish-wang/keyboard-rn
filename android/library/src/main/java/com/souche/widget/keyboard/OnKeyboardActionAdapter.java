@@ -2,8 +2,7 @@ package com.souche.widget.keyboard;
 
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
-
-import com.facebook.react.bridge.Callback;
+import android.widget.EditText;
 
 /**
  * @author Relish Wang
@@ -11,15 +10,10 @@ import com.facebook.react.bridge.Callback;
  */
 public abstract class OnKeyboardActionAdapter implements KeyboardView.OnKeyboardActionListener {
 
-    private Callback mCallback;
-    private EasyCallback mEasyCallback;
+    private EditText mEditText;
 
-    public OnKeyboardActionAdapter(Callback callback) {
-        this.mCallback = callback;
-    }
-
-    public OnKeyboardActionAdapter(EasyCallback callback) {
-        this.mEasyCallback = callback;
+    public OnKeyboardActionAdapter(EditText mEditText) {
+        this.mEditText = mEditText;
     }
 
     /**
@@ -27,9 +21,8 @@ public abstract class OnKeyboardActionAdapter implements KeyboardView.OnKeyboard
      *
      * @param primaryCode 主键值
      * @param keyCodes    所有键值
-     * @param callback    RN回调
      */
-    public void onKey(int primaryCode, int[] keyCodes, Callback callback) {
+    public void onKeyEvent(int primaryCode, int[] keyCodes) {
     }
 
     /**
@@ -39,21 +32,30 @@ public abstract class OnKeyboardActionAdapter implements KeyboardView.OnKeyboard
 
     @Override
     public void onKey(int primaryCode, int[] keyCodes) {
-        onKey(primaryCode, keyCodes, mCallback);
+        onKeyEvent(primaryCode, keyCodes);
+        if (mEditText == null) return;
         if (primaryCode == Keyboard.KEYCODE_DELETE) { // 回退(backspace)
-            if (mCallback != null) mCallback.invoke("backspace");
-            if (mEasyCallback != null) mEasyCallback.onKeyEvent("backspace");
+            int start = Math.max(mEditText.getSelectionStart(), 0);
+            int end = Math.max(mEditText.getSelectionEnd(), 0);
+            if (start != end) {
+                mEditText.getText().delete(start, end);
+            } else if (start > 0) {
+                mEditText.getText().delete(start - 1, end);
+            }
         } else if (primaryCode == Keyboard.KEYCODE_CANCEL) { // 完成（complete）
             close();
-            // mCallback.invoke("cancel");
-            if (mCallback != null) mCallback.invoke("complete");
-            if (mEasyCallback != null) mEasyCallback.onKeyEvent("complete");
+        } else if (primaryCode == Keyboard.EDGE_LEFT) {
+            int start = mEditText.getSelectionStart();
+            if (start > 0) mEditText.setSelection(start - 1);
+        } else if (primaryCode == Keyboard.EDGE_RIGHT) {
+            int start = mEditText.getSelectionStart();
+            if (start < mEditText.length()) mEditText.setSelection(start + 1);
         } else {
-            String code = Character.toString((char) primaryCode);
-            if (mCallback != null) {
-                mCallback.invoke(code);
-            }
-            if (mEasyCallback != null) mEasyCallback.onKeyEvent(code);
+            String text = Character.toString((char) primaryCode);
+            int start = Math.max(mEditText.getSelectionStart(), 0);
+            int end = Math.max(mEditText.getSelectionEnd(), 0);
+            mEditText.getText().replace(Math.min(start, end), Math.max(start, end),
+                    text, 0, text.length());
         }
     }
 

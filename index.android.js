@@ -14,7 +14,8 @@ import {
   NativeModules,
   DeviceEventEmitter,
   Dimensions,
-  Button
+  Button,
+  findNodeHandle
 } from 'react-native';
 //import {CustomTextInput} from 'react-native-custom-keyboard';
 
@@ -22,8 +23,9 @@ export default class keyboard extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      customKeyboardType: 'IDCard',
       textIdCard: '',
-      textCarNumber: '',
+      textCarNumber: ''
     };
   }
   render() {
@@ -36,42 +38,15 @@ export default class keyboard extends Component {
           ref="idCardInput"
           style={styles.textInput}
           placeholder="身份证"
-          onFocus={()=>{
-            NativeModules.SomeModule.callbackMethod('IDCard',(ok)=>{
-              switch(ok){
-                case "-1":// backspace
-                  if(this.state.text.length>0){
-                    this.setState({textIdCard: this.state.textIdCard.substring(0, this.state.textIdCard.length-1)});
-                  }
-                break;
-                default://
-                  this.setState({textIdCard: this.state.textIdCard+ok});
-                break;
-              }
-            },(error)=>{
-              alert('error')});
+          onChangeText={(text) =>{
+            this.setState({textIdCard: text})
           }} >
           {this.state.textIdCard}
         </TextInput>
         <TextInput
           ref="carNumberInput"
           style={styles.textInput}
-          placeholder="车牌号"
-          onFocus={()=>{
-            NativeModules.SomeModule.callbackMethod('CarNumber',(ok)=>{
-              switch(ok){
-                case "-1":// backspace
-                  if(this.state.textCarNumber.length>0){
-                    this.setState({textCarNumber: this.state.textCarNumber.substring(0, this.state.textCarNumber.length-1)});
-                  }
-                break;
-                default://
-                  this.setState({textCarNumber: this.state.textCarNumber+ok});
-                break;
-              }
-            },(error)=>{
-              alert('error')});
-          }} >
+          placeholder="车牌号" >
           {this.state.textCarNumber}
         </TextInput>
         <Button
@@ -85,39 +60,10 @@ export default class keyboard extends Component {
   }
 
   componentDidMount() {
-      //注册扫描监听
-      DeviceEventEmitter.addListener('onKeyboardEvent', this.onKeyboardResult);
-  }
-
-  onKeyboardResult = (e)=> {
-    if(e.tag==='IDCard'){
-      if(e.result==='backspace'){
-        this.setState({
-            textIdCard: this.state.textIdCard.substring(0, this.state.textIdCard.length-1)
-        });
-      }else if(e.result==='complete'){
-        this.refs.idCardInput.blur();
-      }else{
-        this.setState({
-            textIdCard: this.state.textIdCard+e.result
-        });
-      }
-    }else if(e.tag==='CarNumber'){
-        if(e.result==='backspace'){
-          this.setState({
-              textCarNumber: this.state.textCarNumber.substring(0, this.state.textCarNumber.length-1)
-          });
-        }else if(e.result==='complete'){
-          this.refs.idCardInput.blur();
-        }else{
-          this.setState({
-              textCarNumber: this.state.textCarNumber+e.result
-          });
-        }
-    }
-      // DeviceEventEmitter.removeListener('onKeyboardEvent',this.onKeyboardResult);//移除扫描监听
+      NativeModules.SomeModule.install(findNodeHandle(this.refs.idCardInput), this.state.customKeyboardType);
   }
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
