@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.text.InputType;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -17,6 +19,10 @@ import android.widget.PopupWindow;
 
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.UiThreadUtil;
+import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.views.textinput.ReactEditText;
+
+import java.lang.reflect.Method;
 
 /**
  * @author Relish Wang
@@ -42,37 +48,54 @@ public class KeyboardHelper {
      * @param listener 键盘事件监听器
      */
     public static void bind(final EditText et, final KeyboardView keyboard, KeyboardView.OnKeyboardActionListener listener) {
-        if (et == null) throw new NullPointerException("EditText should not be NULL!");
+        if (et == null) return;//throw new NullPointerException("EditText should not be NULL!");
         if (keyboard == null) return; // 表示使用系统键盘
+
+
         keyboard.setOnKeyboardActionListener(listener != null ? listener : new OnKeyboardActionAdapter(et) {
             @Override
             public void close() {
                 hideCustomInput(et);
             }
         });
-        et.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                showCustomInput(et,keyboard);
-                return true;
-            }
-        });
-        et.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                UiThreadUtil.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        showCustomInput(et,keyboard);
-                    }
-                });
-            }
-        });
+//        disableShowInput(et);
+//        et.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                et.requestFocus();
+//                et.requestFocusFromTouch();
+//                showCustomInput(et, keyboard);
+//                return true;
+//            }
+//        });
+//        et.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(final View v) {
+//                v.setEnabled(false);
+//                v.setFocusable(false);
+//                UiThreadUtil.runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        hideSysInput(et);
+//                        showCustomInput(et, keyboard);
+//                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                v.setFocusable(true);
+//                                v.setEnabled(true);
+//                            }
+//                        });
+//                    }
+//                });
+//            }
+//        });
+        et.setInputType(InputType.TYPE_NULL);
         et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
-                    showCustomInput(et,keyboard);
+                    hideSysInput(et);
+                    showCustomInput(et, keyboard);
                 } else {
                     hideCustomInput(et);
                 }
@@ -103,7 +126,6 @@ public class KeyboardHelper {
     }
 
     private static void showCustomInput(EditText et, KeyboardView keyboard) {
-        hideSysInput(et);
         Object obj = et.getTag(R.id.keyboard);
         PopupWindow keyboardWindow;
         if (obj == null) {
@@ -116,6 +138,7 @@ public class KeyboardHelper {
         } else {
             keyboardWindow = ((PopupWindow) obj);
         }
+        if (keyboardWindow.isShowing()) return;
         Window window = getWindow(et);
         if (window == null) return;
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
@@ -126,7 +149,6 @@ public class KeyboardHelper {
     }
 
     private static void hideCustomInput(EditText et) {
-        hideSysInput(et);
         et.clearFocus();
         Object tag = et.getTag(R.id.keyboard);
         if (tag == null) return;
